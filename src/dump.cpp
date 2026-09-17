@@ -36,11 +36,7 @@ void dump(const Memory& mem) {
         // The ASCII gutter.
         for (std::size_t col = 0; col < BYTES_PER_LINE; ++col) {
             Byte b = mem.data[row + col];
-            // TODO(lab-01, M2): when the byte IS printable, print the byte
-            //                   itself instead of the dot. One token changes.
-            //                   Hint: a Byte sent to std::cout prints as a
-            //                   character already - that is the whole joke of
-            //                   Lab 1. Right now every byte looks unprintable.
+
             if (is_printable(b)) {
                 std::cout << b;
             } else {
