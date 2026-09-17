@@ -54,10 +54,7 @@ void dump(const Memory& mem) {
 void show_byte(Byte b) {
     std::cout << static_cast<int>(b) << " ";
 
-    std::cout << "0x"
-            << std::hex
-            << static_cast<int>(b)
-            << " ";
+    std::cout << "0x" << std::hex << static_cast<int>(b) << " ";
 
     std::cout << "0b";
     for (int i = 7; i >= 0; --i) {
@@ -72,6 +69,4 @@ void show_byte(Byte b) {
         std::cout << '.';
     }
     std::cout << "'\n";
-
-
 }

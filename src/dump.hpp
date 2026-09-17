@@ -7,5 +7,4 @@
 // Print the whole box, 16 bytes per line: address, hex, ASCII gutter.
 void dump(const Memory& mem);
 
-
 void show_byte(Byte b);

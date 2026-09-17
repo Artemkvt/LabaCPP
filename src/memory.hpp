@@ -18,6 +18,5 @@ struct Memory {
     Byte data[MEM_SIZE]{};
 };
 
-
 Byte mem_get(const Memory& mem, std::size_t addr);
 bool mem_set(Memory& mem, std::size_t addr, Byte value);
