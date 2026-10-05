@@ -12,6 +12,8 @@
 
 #include "dump.hpp"
 #include "memory.hpp"
+#include "cpu.hpp"
+#include "alu.hpp"
 
 // Turn a word into a number. Accepts decimal (65) and hex (0x41).
 // Returns false if the word is not a number at all.
@@ -32,11 +34,17 @@ static void print_help() {
               << "  get <addr>        show one byte four ways\n"
               << "  set <addr> <val>  write one byte (dec or 0x hex)\n"
               << "  help              this list\n"
-              << "  quit              leave\n";
+              << "  quit              leave\n"
+              << "  reg <a|b> <0..255>  set register value\n"
+              << "  regs               show PC A B Z N C\n"
+              << "  step               execute one instruction\n"
+              << "  alu <op> <x> <y>  test alu operation\n";
 }
 
 int main() {
     Memory mem; // 4096 bytes, on the stack, zeroed by the {} in memory.hpp
+    CPU cpu;
+    cpu.mem = &mem;
 
     std::cout << "ember 0.1 - 4096 bytes of memory you can see. Type `help`.\n";
 
@@ -121,6 +129,64 @@ int main() {
                 mem_set(mem, static_cast<std::size_t>(addr) + 1,
                         static_cast<Byte>((number >> 8) & 0xFF));
             }
+        } else if (cmd == "reg") {
+            std::string r, v;
+            long value = 0;
+            if (!(words >> r) || !(words >> v) || !parse_number(v, value) ||
+                value < 0 || value > 255) {
+                std::cout << "usage: reg <a|b> <0..255>\n";
+            } else if (r == "a") {
+                cpu.a = static_cast<Byte>(value);
+            } else if (r == "b") {
+                cpu.b = static_cast<Byte>(value);
+            } else {
+                std::cout << "unknown register: " << r << '\n';
+            }
+
+        } else if (cmd == "regs") {
+            dump_regs(cpu);
+
+        } else if (cmd == "step") {
+            step(cpu);
+
+        } else if (cmd == "alu") {
+            std::string op, x_word, y_word;
+            long x = 0;
+            long y = 0;
+
+            if (!(words >> op) || !(words >> x_word) || !(words >> y_word) ||
+                !parse_number(x_word, x) || !parse_number(y_word, y) ||
+                x < 0 || x > 255 || y < 0 || y > 255) {
+                std::cout << "usage: alu <add|sub|and|or|xor|shl|shr> <x> <y>\n";
+            } else {
+                Flags f;
+                Byte result = 0;
+
+                if (op == "add") {
+                    result = alu_add(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "sub") {
+                    result = alu_sub(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "and") {
+                    result = alu_and(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "or") {
+                    result = alu_or(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "xor") {
+                    result = alu_xor(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "shl") {
+                    result = alu_shl(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else if (op == "shr") {
+                    result = alu_shr(static_cast<Byte>(x), static_cast<Byte>(y), f);
+                } else {
+                    std::cout << "unknown alu op: " << op << '\n';
+                    continue;
+                }
+
+                std::cout << "result=" << static_cast<int>(result)
+                          << " Z=" << f.z
+                          << " N=" << f.n
+                          << " C=" << f.c
+                          << '\n';
+            } 
         } else {
             std::cout << "unknown command: " << cmd << " (try `help`)\n";
         }
